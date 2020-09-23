@@ -1,0 +1,1 @@
+web: universe/jvm/target/universal/stage/bin/universe-server

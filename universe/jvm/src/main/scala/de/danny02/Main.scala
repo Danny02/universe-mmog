@@ -88,10 +88,11 @@ object Main extends IOApp {
   def all(blocker: Blocker) = (index <+> apiService <+> Main.staticFiles(blocker)).orNotFound
 
   def run(args: List[String]): IO[ExitCode] = {
+    val port = sys.env.get("PORT").flatMap(_.toIntOption).getOrElse(8080)
     val app = for {
       blocker <- Blocker[IO]
       server <- BlazeServerBuilder[IO](global)
-        .bindHttp(8080, "localhost")
+        .bindHttp(port, "0.0.0.0")
         .withHttpApp(all(blocker))
         .resource
     } yield server

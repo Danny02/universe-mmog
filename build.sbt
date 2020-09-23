@@ -1,14 +1,8 @@
 val http4sVersion = "0.21.6"
 
 ThisBuild / scalaVersion := "2.13.3"
-
-lazy val root = project
-  .in(file("."))
-  .aggregate(universe.js, universe.jvm)
-  .settings(
-    publish := {},
-    publishLocal := {}
-  )
+ThisBuild / organization := "com.github.danny02"
+ThisBuild / maintainer := "github.com/danny02"
 
 lazy val universe = crossProject(JSPlatform, JVMPlatform)
   .withoutSuffixFor(JVMPlatform)
@@ -21,6 +15,7 @@ lazy val universe = crossProject(JSPlatform, JVMPlatform)
       "com.lihaoyi" %%% "scalatags" % "0.9.1"
     )
   )
+  .jvmConfigure(_.enablePlugins(JavaAppPackaging))
   .jvmSettings(
     name := "universe-server",
     // Add JVM-specific settings here,
