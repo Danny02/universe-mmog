@@ -1,28 +1,15 @@
 package de.danny02
 
-import java.util.zip.Deflater
-
 import cats.SemigroupK.ops.toAllSemigroupKOps
 import cats.effect._
-import jdk.jfr.ContentType
-import org.http4s.{EntityDecoder, EntityEncoder, HttpRoutes, MediaType}
+import org.http4s.HttpRoutes
 import org.http4s.dsl.io._
-import org.http4s.implicits._
 import org.http4s.headers._
+import org.http4s.implicits._
+import org.http4s.server.Router
 import org.http4s.server.blaze._
 import org.http4s.server.middleware.GZip
-import org.http4s.server.{Router, staticcontent}
-import org.http4s.server.staticcontent.FileService.Config
-import org.http4s.server.staticcontent.WebjarService.WebjarAsset
-import upickle.default._
-import org.http4s.server.staticcontent.{
-  FileService,
-  ResourceService,
-  WebjarService,
-  fileService,
-  resourceService,
-  webjarService
-}
+import org.http4s.server.staticcontent.{ResourceService, WebjarService, resourceService, webjarService}
 
 import scala.concurrent.ExecutionContext.global
 
