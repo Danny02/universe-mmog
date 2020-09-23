@@ -1,5 +1,7 @@
 package de.danny02
 
+import java.util.zip.Deflater
+
 import cats.SemigroupK.ops.toAllSemigroupKOps
 import cats.effect._
 import jdk.jfr.ContentType
@@ -8,6 +10,7 @@ import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.headers._
 import org.http4s.server.blaze._
+import org.http4s.server.middleware.GZip
 import org.http4s.server.{Router, staticcontent}
 import org.http4s.server.staticcontent.FileService.Config
 import org.http4s.server.staticcontent.WebjarService.WebjarAsset
@@ -61,7 +64,7 @@ object Main extends IOApp {
       Ok(Template.txt, `Content-Type`(mediaType"text/html;charset=UTF-8"))
     }
 
-  def api = {
+  def apiService = {
     implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
     import AutowireServer._
 
@@ -73,13 +76,16 @@ object Main extends IOApp {
     )
   }
 
-  def staticFiles(blocker: Blocker) =
-    Router(
+  def staticFiles(blocker: Blocker) = {
+    val router = Router(
       "assets" -> resourceService[IO](ResourceService.Config("/", blocker)),
       "deps"   -> webjarService[IO](WebjarService.Config(blocker))
     )
 
-  def all(blocker: Blocker) = (index <+> api <+> Main.staticFiles(blocker)).orNotFound
+    GZip(router)
+  }
+
+  def all(blocker: Blocker) = (index <+> apiService <+> Main.staticFiles(blocker)).orNotFound
 
   def run(args: List[String]): IO[ExitCode] = {
     val app = for {
