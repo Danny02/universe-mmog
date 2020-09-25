@@ -1,15 +1,17 @@
 package de.danny02
 
+import java.util.UUID
+
 import cats.SemigroupK.ops.toAllSemigroupKOps
 import cats.effect._
-import org.http4s.HttpRoutes
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.implicits._
-import org.http4s.server.Router
 import org.http4s.server.blaze._
 import org.http4s.server.middleware.GZip
 import org.http4s.server.staticcontent.{ResourceService, WebjarService, resourceService, webjarService}
+import org.http4s.{AuthedRoutes, _}
+import org.http4s.server._
 
 import scala.concurrent.ExecutionContext.global
 
@@ -17,7 +19,7 @@ object Template {
   import scalatags.Text.all._
   import scalatags.Text.tags2.title
 
-  val txt =
+  def txt(name: String) =
     "<!DOCTYPE html>" +
       html(
         head(
@@ -31,7 +33,7 @@ object Template {
           )
         ),
         body(margin := 0)(
-          script("Main.run()")
+          script(s"Main.run('$name')")
         )
       )
 }
@@ -46,10 +48,12 @@ object CalcImpl extends CalcApi {
 
 object Main extends IOApp {
 
-  def index = HttpRoutes
-    .of[IO] { case GET -> Root =>
-      Ok(Template.txt, `Content-Type`(mediaType"text/html;charset=UTF-8"))
-    }
+  def index = Auth.middleware(
+    AuthedRoutes
+      .of[User, IO] { case GET -> Root as user =>
+        Ok(Template.txt(user.name), `Content-Type`(mediaType"text/html;charset=UTF-8"))
+      }
+  )
 
   def apiService = {
     implicit val ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
@@ -72,7 +76,7 @@ object Main extends IOApp {
     GZip(router)
   }
 
-  def all(blocker: Blocker) = (index <+> apiService <+> Main.staticFiles(blocker)).orNotFound
+  def all(blocker: Blocker) = (Main.staticFiles(blocker) <+> index <+> apiService).orNotFound
 
   def run(args: List[String]): IO[ExitCode] = {
     val port = sys.env.get("PORT").flatMap(_.toIntOption).getOrElse(8080)

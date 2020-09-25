@@ -29,7 +29,7 @@ object Client extends autowire.Client[ujson.Value, Reader, Writer] {
 object MainJs {
 
   @JSExport
-  def run(): Unit = {
+  def run(name: String): Unit = {
     EventExampleCalc.doExperiment()
 
     val inputBox  = input.render
@@ -69,14 +69,15 @@ object MainJs {
       div(
         div(
           cls := "container",
-          h1("Greeter"),
+          h1(s"Hello $name"),
+          h2("Greeter"),
           p("Enter your Name"),
           inputBox,
           outputBox
         ),
         div(
           cls := "container",
-          h1("Calculator"),
+          h2("Calculator"),
           p("Enter a Number"),
           aBox,
           p("Enter another Number"),
